@@ -12,12 +12,9 @@ import (
 
 // collection object/instance - used across database package
 var Collection *mongo.Collection
-// client object/instance - used across the database package
-var Client *mongo.Client
 
 // connect to mongodb
 func Connect() {
-	var err error
 	connectionString := os.Getenv("DB_URI")
 	dbName := os.Getenv("DB_NAME")
 	collName := os.Getenv("DB_COLLECTION_NAME")
@@ -26,14 +23,14 @@ func Connect() {
 	clientOptions := options.Client().ApplyURI(connectionString)
 
 	// connect to MongoDB
-	Client, err = mongo.Connect(context.TODO(), clientOptions)
-
+	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// defer is being run after function is complete
+	defer client.Disconnect(context.TODO())
 	// Check the connection
-	err = Client.Ping(context.TODO(), nil)
+	err = client.Ping(context.TODO(), nil)
 
 	if err != nil {
 		log.Fatal(err)
@@ -41,7 +38,7 @@ func Connect() {
 
 	fmt.Println("Connected to MongoDB!")
 
-	Collection = Client.Database(dbName).Collection(collName)
+	Collection = client.Database(dbName).Collection(collName)
 
 	fmt.Println("Collection instance created!")
 }

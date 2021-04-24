@@ -3,7 +3,6 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"server/database"
@@ -15,8 +14,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	var user models.User
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &user)
+	err := json.NewDecoder(r.Body).Decode(&user)
 	var res models.ResponseResult
 	if err != nil {
 		res.Error = err.Error()
@@ -41,12 +39,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	var user models.User
-	body, _ := ioutil.ReadAll(r.Body)
-	err := json.Unmarshal(body, &user)
+	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 
 	if err != nil {
 		log.Fatal(err)
