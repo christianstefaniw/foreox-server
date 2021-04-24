@@ -13,7 +13,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-var jwtKey = []byte("Uploader4224")
+var jwtKey = []byte("Foreox4224")
 var Username string
 
 // Checks if users token is ok
