@@ -33,7 +33,7 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	tknStr := c.Value
 
 	// Initialize a new instance of `Claims`
-	claims := &Claims{}
+	claims := new(Claims)
 
 	// Parse the JWT string and store the result in `claims`.
 	// Note that we are passing the key in this method as well. This method will return an error

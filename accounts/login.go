@@ -16,7 +16,6 @@ func Login(username, password string) (models.User, error) {
 	var user models.User
 
 	err := database.Collection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&user)
-
 	if err != nil {
 		return user, err
 	}
