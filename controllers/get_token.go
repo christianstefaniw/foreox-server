@@ -13,8 +13,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-var jwtKey = []byte("Foreox4224")
-var Username string
+const jwtKey string = "Foreox4224"
 
 // Checks if users token is ok
 func GetToken(w http.ResponseWriter, r *http.Request) {
@@ -59,6 +58,5 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 
 	// Finally, return the welcome message to the user, along with their
 	// username given in the token
-	Username = claims.Username
 	w.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
 }
