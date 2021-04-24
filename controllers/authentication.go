@@ -43,11 +43,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	
 	result, res := database.Login(user)
 	if res.Error != "" {
 		http.Error(w, res.Error, http.StatusForbidden)
