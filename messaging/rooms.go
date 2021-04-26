@@ -22,11 +22,7 @@ func NewRoom() *Room {
 	}
 }
 
-func (r *Room) Run() {
-	r.serve()
-}
-
-func (r *Room) serve() {
+func (r *Room) Serve() {
 	for {
 		select {
 		case msg := <-r.broadcast:

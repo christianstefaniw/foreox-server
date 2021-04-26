@@ -16,7 +16,7 @@ func Router() *gin.Engine {
 
 	room := messaging.NewRoom()
 
-	go room.Run()
+	go room.Serve()
 
 	// Routes
 	router.LoadHTMLFiles("index.html")
