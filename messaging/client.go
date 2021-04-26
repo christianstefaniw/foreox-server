@@ -3,7 +3,6 @@ package messaging
 import (
 	"fmt"
 	"server/models"
-	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -11,7 +10,6 @@ import (
 
 // TODO handle errors
 // TODO make msg chan buffered and handle when buffer gets too big
-// TODO benchmark pool
 type client struct {
 	room *Room
 	conn *websocket.Conn
@@ -20,18 +18,10 @@ type client struct {
 	models.User
 }
 
-var clientPool = &sync.Pool{
-	New: func() interface{} {
-		return &client{}
-	},
-}
-
 func (c *client) unregister() {
 	close(c.done)
-	close(c.msg)
 	c.room.unregister <- c
 	c.conn.Close()
-	clientPool.Put(c)
 }
 
 func (c *client) read(heartbeat chan interface{}, pulseInterval time.Duration) {
@@ -114,11 +104,7 @@ func (c *client) doWork() {
 }
 
 func ServeWs(r *Room, conn *websocket.Conn) {
-	c := clientPool.Get().(*client)
-	c.room = r
-	c.conn = conn
-	c.msg = make(chan []byte)
-	c.done = make(chan interface{})
+	c := &client{room: r, conn: conn, msg: make(chan []byte), done: make(chan interface{})}
 
 	c.room.register <- c
 
