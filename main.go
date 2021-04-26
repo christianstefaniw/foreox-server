@@ -19,5 +19,5 @@ func main() {
 	router.Use(middleware.CORSMiddleware())
 
 	fmt.Println("Starting server on the port 8080...")
-	router.Run(os.Getenv("PORT"))
+	router.Run(":" + os.Getenv("PORT"))
 }

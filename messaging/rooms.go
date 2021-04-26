@@ -4,7 +4,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type room struct {
+type Room struct {
 	id         primitive.ObjectID
 	clients    map[*client]bool
 	broadcast  chan []byte
@@ -12,8 +12,8 @@ type room struct {
 	unregister chan *client
 }
 
-func NewRoom() *room {
-	return &room{
+func NewRoom() *Room {
+	return &Room{
 		id:         primitive.NewObjectID(),
 		clients:    make(map[*client]bool),
 		broadcast:  make(chan []byte),
@@ -22,11 +22,11 @@ func NewRoom() *room {
 	}
 }
 
-func (r *room) Run() {
+func (r *Room) Run() {
 	r.serve()
 }
 
-func (r *room) serve() {
+func (r *Room) serve() {
 	for {
 		select {
 		case msg := <-r.broadcast:
