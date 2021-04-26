@@ -2,6 +2,7 @@ package messaging
 
 import (
 	"fmt"
+	"server/errors"
 	"server/models"
 	"time"
 
@@ -32,6 +33,10 @@ func (c *client) read(heartbeat chan interface{}, pulseInterval time.Duration) {
 		// read message sent to THIS connection
 		_, msg, err := c.conn.ReadMessage()
 		if err != nil {
+			if err.Error() != "websocket: close 1001 (goig away)" {
+				errors.PrintError(errors.GetErrorKey(), errors.Wrap(err, err.Error()))
+			}
+			fmt.Println("disconnecting...")
 			c.unregister()
 			return
 		}
@@ -90,6 +95,7 @@ func (c *client) doWork() {
 				return
 			}
 		case _, ok := <-c.done:
+			fmt.Println("done channel closed")
 			if !ok {
 				return
 			}

@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"server/accounts"
+	"server/errors"
 	"server/models"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +38,7 @@ func LoginHandler(c *gin.Context) {
 
 	err := json.NewDecoder(c.Request.Body).Decode(user)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(errors.Wrap(err, err.Error()))
 	}
 
 	authedUser, err := accounts.Login(user.Username, user.Password)

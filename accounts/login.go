@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"server/database"
+	errors "server/errors"
 	"server/models"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -17,13 +18,13 @@ func Login(username, password string) (models.User, error) {
 
 	err := database.Collection.FindOne(context.TODO(), bson.M{"username": username}).Decode(&user)
 	if err != nil {
-		return user, err
+		return user, errors.Wrap(err, err.Error())
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 
 	if err != nil {
-		return user, err
+		return user, errors.Wrap(err, err.Error())
 	}
 
 	fmt.Println(user.ID)
@@ -36,7 +37,7 @@ func Login(username, password string) (models.User, error) {
 	tokenString, err := token.SignedString([]byte("Uploader4224"))
 
 	if err != nil {
-		return user, err
+		return user, errors.Wrap(err, err.Error())
 	}
 
 	user.Token = tokenString
