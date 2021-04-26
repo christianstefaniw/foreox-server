@@ -2,29 +2,22 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net/http"
-	"github.com/rs/cors"
+	"os"
 
 	"server/database"
 	"server/helpers"
+	"server/middleware"
 	"server/router"
 )
 
 func main() {
-	r := router.Router()
-	fmt.Println("Starting server on the port 8080...")
+	router := router.Router()
+
 	helpers.LoadDotEnv()
 	database.Connect()
 
-	c := cors.New(cors.Options{
-        AllowedOrigins: []string{"http://localhost:3000"},
-		AllowedMethods: []string{"GET", "HEAD", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowCredentials: true,
-		AllowedHeaders: []string{"X-Requested-With", "Content-Type"},
-    })
+	router.Use(middleware.CORSMiddleware())
 
-    handler := c.Handler(r)
-
-	log.Fatal(http.ListenAndServe(":8080", handler))
+	fmt.Println("Starting server on the port 8080...")
+	router.Run(os.Getenv("PORT"))
 }
