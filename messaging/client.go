@@ -50,10 +50,6 @@ func (c *client) write() {
 }
 
 func ServeWs(r *Room, w http.ResponseWriter, req *http.Request) {
-	serveWs(r, w, req)
-}
-
-func serveWs(r *Room, w http.ResponseWriter, req *http.Request) {
 	conn, _ := upgrader.Upgrade(w, req, nil)
 	c := &client{room: r, conn: conn, msg: make(chan []byte)}
 
