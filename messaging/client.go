@@ -11,8 +11,10 @@ import (
 )
 
 const (
-	readDeadline  = 5 * time.Second
-	writeDeadline = 5 * time.Second
+	readWait   = 5 * time.Second
+	writeWait  = 5 * time.Second
+	pongWait   = 60 * time.Second
+	pingPeriod = (pongWait * 9) / 10
 )
 
 // TODO handle errors
@@ -27,11 +29,18 @@ type client struct {
 }
 
 func (c *client) unregister() {
+	close(c.msg)
 	c.room.unregister <- c
 	c.conn.Close()
 }
 
-func (c *client) read(deadline time.Duration) {
+func (c *client) read() {
+	c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.conn.SetPongHandler(func(string) error {
+		c.conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
+
 	for {
 		select {
 		case <-c.ctx.Done():
@@ -40,59 +49,46 @@ func (c *client) read(deadline time.Duration) {
 		}
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				errors.PrintError(errors.GetErrorKey(), errors.Wrap(err, err.Error()))
 			}
-			c.cancel()
+			return
 		} else {
 			c.room.broadcast <- message
 		}
 	}
 }
 
-func (c *client) write(heartbeat chan interface{}, pulseInterval time.Duration) {
-	pulse := time.NewTicker(pulseInterval)
+func (c *client) write() {
+	ticker := time.NewTicker(pingPeriod)
+
 	for {
 		select {
-		case <-pulse.C:
-			sendPulse(heartbeat)
 		case msg := <-c.msg:
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			c.conn.WriteMessage(websocket.TextMessage, msg)
+		case <-ticker.C:
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				c.cancel()
+				return
+			}
 		case <-c.ctx.Done():
 			return
-		}
-	}
-}
-
-func (c *client) writeSteward() {
-	const timeout = 5 * time.Second
-	heartbeat := make(chan interface{})
-
-	go c.write(heartbeat, timeout/2)
-
-	for {
-		select {
-		case <-heartbeat:
-		case <-c.ctx.Done():
-			close(heartbeat)
-			return
-		case <-time.After(timeout):
-			fmt.Println("writer unhealthy, unregistering...")
-			c.cancel()
 		}
 	}
 }
 
 func (c *client) doWork() {
 
-	go c.read(readDeadline)
-	go c.writeSteward()
+	go c.read()
+	go c.write()
 
 	for {
 		select {
 		case <-c.ctx.Done():
-			fmt.Println("client closed")
 			c.unregister()
+			fmt.Println("client closed")
 			return
 
 		case <-c.room.ctx.Done():
