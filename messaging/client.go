@@ -52,7 +52,7 @@ func (c *client) read() {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
 				errors.PrintError(errors.GetErrorKey(), errors.Wrap(err, err.Error()))
 			}
-			return
+			c.cancel()
 		} else {
 			c.room.broadcast <- message
 		}
