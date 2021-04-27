@@ -11,14 +11,17 @@ import (
 )
 
 const (
-	readWait   = 5 * time.Second
-	writeWait  = 5 * time.Second
-	pongWait   = 60 * time.Second
-	pingPeriod = (pongWait * 9) / 10
+	readWait       = 5 * time.Second
+	writeWait      = 5 * time.Second
+	pongWait       = 60 * time.Second
+	pingPeriod     = (pongWait * 9) / 10
+	maxMessageSize = 512
 )
 
-// TODO handle errors
-// TODO make msg chan buffered and handle when buffer gets too big
+var (
+	newLine = []byte{'\n'}
+)
+
 type client struct {
 	room   *Room
 	conn   *websocket.Conn
@@ -35,6 +38,7 @@ func (c *client) unregister() {
 }
 
 func (c *client) read() {
+	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error {
 		c.conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -66,12 +70,27 @@ func (c *client) write() {
 		select {
 		case msg := <-c.msg:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
-			c.conn.WriteMessage(websocket.TextMessage, msg)
+			w, err := c.conn.NextWriter(websocket.TextMessage)
+			if err != nil {
+				c.cancel()
+			}
+
+			w.Write(msg)
+
+			if qued := len(c.msg); qued > 0 {
+				for i := 0; i < qued; i++ {
+					w.Write(newLine)
+					w.Write(<-c.msg)
+				}
+			}
+
+			if err := w.Close(); err != nil {
+				c.cancel()
+			}
 		case <-ticker.C:
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				c.cancel()
-				return
 			}
 		case <-c.ctx.Done():
 			return
@@ -100,7 +119,7 @@ func (c *client) doWork() {
 
 func ServeWs(r *Room, conn *websocket.Conn) {
 	ctx, cancel := context.WithCancel(context.Background())
-	c := &client{room: r, conn: conn, msg: make(chan []byte), ctx: ctx, cancel: cancel}
+	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
 
 	c.room.register <- c
 

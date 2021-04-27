@@ -12,6 +12,7 @@ type Room struct {
 	broadcast  chan []byte
 	register   chan *client
 	unregister chan *client
+	name       string
 	ctx        context.Context
 	cancel     context.CancelFunc
 }
@@ -20,6 +21,7 @@ func NewRoom() *Room {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &Room{
 		id:         primitive.NewObjectID(),
+		name:       "new room",
 		clients:    make(map[*client]bool),
 		broadcast:  make(chan []byte),
 		register:   make(chan *client),
@@ -27,6 +29,10 @@ func NewRoom() *Room {
 		ctx:        ctx,
 		cancel:     cancel,
 	}
+}
+
+func GetRoom(id primitive.ObjectID) *Room {
+	return nil
 }
 
 func (r *Room) Serve() {

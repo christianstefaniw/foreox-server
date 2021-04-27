@@ -13,7 +13,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-func ServeWs(r *messaging.Room, c *gin.Context) {
+func ServeWs(c *gin.Context, rm *messaging.Room) {
 	conn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
-	messaging.ServeWs(r, conn)
+	messaging.ServeWs(rm, conn)
 }

@@ -12,11 +12,9 @@ import (
 func Router() *gin.Engine {
 
 	router := gin.Default()
+	rm := messaging.NewRoom()
+	go rm.Serve()
 	router.Use(middleware.CORSMiddleware())
-
-	room := messaging.NewRoom()
-
-	go room.Serve()
 
 	// Routes
 	router.LoadHTMLFiles("index.html")
@@ -26,7 +24,7 @@ func Router() *gin.Engine {
 	router.POST("/api/user/login", controllers.LoginHandler)
 	router.POST("/api/user/register", controllers.RegisterHandler)
 	router.GET("/ws", func(c *gin.Context) {
-		controllers.ServeWs(room, c)
+		controllers.ServeWs(c, rm)
 	})
 	return router
 }
