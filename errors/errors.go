@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"runtime/debug"
+	"sync"
 )
 
 type Error struct {
@@ -14,14 +15,19 @@ type Error struct {
 
 type ErrorKey int64
 
-var errorKey = ErrorKey(0)
+var (
+	errorKey = ErrorKey(0)
+	mutex    sync.Mutex
+)
 
 func GetErrorKey() ErrorKey {
 	return errorKey
 }
 
 func Wrap(err error, message string, msgArgs ...interface{}) Error {
+	mutex.Lock()
 	errorKey++
+	mutex.Unlock()
 	return Error{
 		Inner:      err,
 		Message:    fmt.Sprintf(message, msgArgs...),
