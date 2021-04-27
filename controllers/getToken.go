@@ -13,6 +13,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
+// constant variables
 var jwtKey = []byte("Foreox4224")
 var Username string
 
