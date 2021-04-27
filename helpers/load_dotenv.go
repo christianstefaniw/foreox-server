@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"log"
+	errors "server/errors"
 
 	"github.com/joho/godotenv"
 )
@@ -12,6 +13,6 @@ func LoadDotEnv() {
 	err := godotenv.Load(".env")
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatal(errors.Wrap(err, err.Error()))
 	}
 }

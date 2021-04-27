@@ -2,9 +2,10 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
-	"fmt"
+	errors "server/errors"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,14 +19,14 @@ func Connect() {
 	connectionString := os.Getenv("DB_URI")
 	dbName := os.Getenv("DB_NAME")
 	collName := os.Getenv("DB_COLLECTION_NAME")
-	
+
 	// Set client options
 	clientOptions := options.Client().ApplyURI(connectionString)
 
 	// connect to MongoDB
 	client, err := mongo.Connect(context.TODO(), clientOptions)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(errors.Wrap(err, err.Error()))
 	}
 	// defer is being run after function is complete
 	defer client.Disconnect(context.TODO())
@@ -33,7 +34,7 @@ func Connect() {
 	err = client.Ping(context.TODO(), nil)
 
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(errors.Wrap(err, err.Error()))
 	}
 
 	fmt.Println("Connected to MongoDB!")

@@ -2,61 +2,58 @@ package controllers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"server/database"
+	"server/accounts"
+	"server/errors"
 	"server/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 // Registers user
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func RegisterHandler(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+	user := new(models.User)
+	err := json.NewDecoder(c.Request.Body).Decode(user)
 
-	w.Header().Set("Content-Type", "application/json")
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	var res models.ResponseResult
 	if err != nil {
-		res.Error = err.Error()
-		json.NewEncoder(w).Encode(res)
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	err = accounts.Register(user)
 	if err != nil {
-		http.Error(w, "Error, Try Again", http.StatusForbidden)
+		http.Error(c.Writer, err.Error(), http.StatusForbidden)
 		return
 	}
-	res = database.Register(user)
-	if res.Error != "" {
-		http.Error(w, res.Error, http.StatusForbidden)
-	} else {
-		json.NewEncoder(w).Encode(res.Result)
-	}
-	fmt.Println(res)
+	json.NewEncoder(c.Writer).Encode(user)
+
 }
-// Logs in user
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
-	w.Header().Set("Content-Type", "application/json")
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+// Logs in user
+func LoginHandler(c *gin.Context) {
+	c.Header("Content-Type", "application/json")
+	user := new(models.User)
+
+	err := json.NewDecoder(c.Request.Body).Decode(user)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(errors.Wrap(err, err.Error()))
 	}
-	
-	result, res := database.Login(user)
-	if res.Error != "" {
-		http.Error(w, res.Error, http.StatusForbidden)
+
+	authedUser, err := accounts.Login(user.Username, user.Password)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusForbidden)
 	} else {
-		c := &http.Cookie{
-			Name: "authToken",
-			Value: result.Token,
-			Path: "/",
+		cookie := &http.Cookie{
+			Name:     "authToken",
+			Value:    authedUser.Token,
+			Path:     "/",
 			HttpOnly: true,
-        	Secure:   true,
+			Secure:   true,
 			SameSite: http.SameSiteNoneMode,
 		}
-		http.SetCookie(w, c)
-		json.NewEncoder(w).Encode(result)
+		http.SetCookie(c.Writer, cookie)
+		json.NewEncoder(c.Writer).Encode(authedUser)
 	}
 }
