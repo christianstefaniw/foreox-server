@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"github.com/gin-gonic/gin"
 
 	jwt "github.com/dgrijalva/jwt-go"
 )
@@ -13,24 +14,22 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-const jwtKey string = "Foreox4224"
+var jwtKey = []byte("Foreox4224")
+var Username string
 
 // Checks if users token is ok
-func GetToken(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie("authToken")
+func GetToken(c *gin.Context) {
+	tknStr, err := c.Cookie("authToken")
 	if err != nil {
 		if err == http.ErrNoCookie {
 			// If the cookie is not set, return an unauthorized status
-			w.WriteHeader(http.StatusUnauthorized)
+			c.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		// For any other type of error, return a bad request status
-		w.WriteHeader(http.StatusBadRequest)
+		c.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	// Get the JWT string from the cookie
-	tknStr := c.Value
 
 	// Initialize a new instance of `Claims`
 	claims := new(Claims)
@@ -44,19 +43,20 @@ func GetToken(w http.ResponseWriter, r *http.Request) {
 	})
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
+			c.Writer.WriteHeader(http.StatusUnauthorized)
 			return
 		}
 		fmt.Println(err, "probably because you don't have your secrets the same")
-		w.WriteHeader(http.StatusBadRequest)
+		c.Writer.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	if !tkn.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
+		c.Writer.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
 	// Finally, return the welcome message to the user, along with their
 	// username given in the token
-	w.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
+	Username = claims.Username
+	c.Writer.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
 }

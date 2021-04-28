@@ -34,7 +34,7 @@ func Login(username, password string) (models.User, error) {
 		"username": user.Username,
 	})
 
-	tokenString, err := token.SignedString([]byte("Uploader4224"))
+	tokenString, err := token.SignedString([]byte("Foreox4224"))
 
 	if err != nil {
 		return user, errors.Wrap(err, err.Error())

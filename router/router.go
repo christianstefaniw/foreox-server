@@ -25,6 +25,7 @@ func Router() *gin.Engine {
 	router.POST("/api/user/login", controllers.LoginHandler)
 	router.POST("/api/user/register", controllers.RegisterHandler)
 	router.GET("/api/newroom", controllers.NewRoom)
+	router.GET("/api/getToken", controllers.GetToken)
 	router.GET("/ws/:id", controllers.ServeWs)
 	return router
 }
