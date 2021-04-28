@@ -1,14 +1,23 @@
-package messaging
+package services
 
 import (
 	"context"
 	"fmt"
-	errors "server/errors"
-	"server/models"
+	"server/apps/accounts"
+	"server/errors"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
+
+type client struct {
+	room   *Room
+	conn   *websocket.Conn
+	msg    chan []byte
+	ctx    context.Context
+	cancel context.CancelFunc
+	accounts.User
+}
 
 const (
 	readWait       = 5 * time.Second
@@ -21,15 +30,6 @@ const (
 var (
 	newLine = []byte{'\n'}
 )
-
-type client struct {
-	room   *Room
-	conn   *websocket.Conn
-	msg    chan []byte
-	ctx    context.Context
-	cancel context.CancelFunc
-	models.User
-}
 
 func (c *client) unregister() {
 	close(c.msg)
@@ -115,13 +115,4 @@ func (c *client) doWork() {
 			return
 		}
 	}
-}
-
-func ServeWs(r *Room, conn *websocket.Conn) {
-	ctx, cancel := context.WithCancel(context.Background())
-	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
-
-	c.room.register <- c
-
-	go c.doWork()
 }

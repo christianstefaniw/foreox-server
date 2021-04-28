@@ -3,8 +3,8 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	errors "server/errors"
-	"server/messaging"
+	"server/apps/messaging/services"
+	"server/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -18,7 +18,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func ServeWs(c *gin.Context) {
-	var rm *messaging.Room
+	var rm *services.Room
 	fmt.Println(c.Param("id"))
 	rmId := c.Param("id")
 
@@ -29,13 +29,13 @@ func ServeWs(c *gin.Context) {
 		return
 	}
 
-	rm, ok := messaging.GetRoom(rmObjectId)
+	rm, ok := services.GetRoom(rmObjectId)
 	if !ok {
 		c.Writer.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	conn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
-	messaging.ServeWs(rm, conn)
+	services.ServeWs(rm, conn)
 	c.Writer.WriteHeader(http.StatusAccepted)
 }

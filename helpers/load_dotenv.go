@@ -10,7 +10,7 @@ import (
 // load environment
 func LoadDotEnv() {
 	// load .env file
-	err := godotenv.Load(".env")
+	err := godotenv.Load("../../.env")
 
 	if err != nil {
 		log.Fatal(errors.Wrap(err, err.Error()))

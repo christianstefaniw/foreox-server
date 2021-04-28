@@ -3,19 +3,19 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"github.com/gin-gonic/gin"
+	foreox "server/foreox/settings"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
 )
 
-type Claims struct {
+type claims struct {
 	Username string `json:"username"`
 	Id       string `json:"id"`
 	jwt.StandardClaims
 }
 
 var jwtKey = []byte("Foreox4224")
-var Username string
 
 // Checks if users token is ok
 func GetToken(c *gin.Context) {
@@ -32,7 +32,7 @@ func GetToken(c *gin.Context) {
 	}
 
 	// Initialize a new instance of `Claims`
-	claims := new(Claims)
+	claims := new(claims)
 
 	// Parse the JWT string and store the result in `claims`.
 	// Note that we are passing the key in this method as well. This method will return an error
@@ -57,6 +57,6 @@ func GetToken(c *gin.Context) {
 
 	// Finally, return the welcome message to the user, along with their
 	// username given in the token
-	Username = claims.Username
+	foreox.Usernames.LoadOrStore(tknStr, claims.Username)
 	c.Writer.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
 }

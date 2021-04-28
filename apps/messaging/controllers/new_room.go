@@ -2,13 +2,13 @@ package controllers
 
 import (
 	"net/http"
-	"server/messaging"
+	"server/apps/messaging/services"
 
 	"github.com/gin-gonic/gin"
 )
 
 func NewRoom(c *gin.Context) {
-	room := messaging.NewRoom()
+	room := services.NewRoom()
 
 	go room.Serve()
 

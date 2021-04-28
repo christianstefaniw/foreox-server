@@ -7,13 +7,15 @@ import (
 	"os"
 
 	"server/database"
+	"server/foreox/router"
+	"server/foreox/settings"
 	"server/helpers"
 	"server/middleware"
-	"server/router"
 )
 
 func main() {
 	initLogOutput()
+	settings.Settings()
 
 	router := router.Router()
 

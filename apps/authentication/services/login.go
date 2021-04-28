@@ -1,11 +1,11 @@
-package accounts
+package services
 
 import (
 	"context"
 	"fmt"
+	"server/apps/accounts"
 	"server/database"
 	errors "server/errors"
-	"server/models"
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"go.mongodb.org/mongo-driver/bson"
@@ -13,8 +13,8 @@ import (
 )
 
 // Logs in user to the database
-func Login(username, password string) (models.User, error) {
-	var user models.User
+func Login(username, password string) (accounts.User, error) {
+	var user accounts.User
 
 	err := database.Collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
 	if err != nil {

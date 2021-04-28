@@ -1,14 +1,13 @@
-package messaging
+package services
 
 import (
 	"context"
 	"fmt"
 	"sync"
 
+	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
-
-var activeRooms sync.Map
 
 type Room struct {
 	id         primitive.ObjectID
@@ -20,6 +19,17 @@ type Room struct {
 	ctx        context.Context
 	cancel     context.CancelFunc
 }
+
+func ServeWs(r *Room, conn *websocket.Conn) {
+	ctx, cancel := context.WithCancel(context.Background())
+	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
+
+	c.room.register <- c
+
+	go c.doWork()
+}
+
+var activeRooms sync.Map
 
 func GetRoom(id primitive.ObjectID) (*Room, bool) {
 	rm, ok := activeRooms.Load(id)

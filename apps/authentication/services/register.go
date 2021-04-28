@@ -1,18 +1,18 @@
-package accounts
+package services
 
 import (
 	"context"
+	"server/apps/accounts"
 	"server/constants"
 	"server/database"
 	errors "server/errors"
-	"server/models"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"golang.org/x/crypto/bcrypt"
 )
 
 // Registers user to the database
-func Register(user *models.User) error {
+func Register(user *accounts.User) error {
 	err := database.Collection.FindOne(context.Background(), bson.M{"username": user.Username}).Decode(new(interface{}))
 	if err.Error() != constants.MONGO_NO_DOC {
 		return errors.Wrap(err, err.Error())
