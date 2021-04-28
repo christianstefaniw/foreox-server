@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -18,6 +19,7 @@ func main() {
 
 	helpers.LoadDotEnv()
 	database.Connect()
+	defer database.Collection.Database().Client().Disconnect(context.Background())
 
 	router.Use(middleware.CORSMiddleware())
 
