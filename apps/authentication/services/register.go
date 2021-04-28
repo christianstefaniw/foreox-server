@@ -22,13 +22,13 @@ func Register(user *accounts.User) error {
 
 	if err != nil {
 		return errors.Wrap(err, "error hashing password")
-	} else {
-		user.Password = string(hash)
 	}
+
+	user.Password = string(hash)
+
 	_, err = database.Collection.InsertOne(context.Background(), user)
 	if err != nil {
 		return errors.Wrap(err, "error while creating user")
-	} else {
-		return nil
 	}
+	return nil
 }
