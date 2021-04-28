@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"net/http"
-	"server/apps/accounts"
+	accounts "server/apps/accounts/models"
 	"server/apps/authentication/services"
 
 	"github.com/gin-gonic/gin"

@@ -3,7 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	foreox "server/foreox/settings"
+	"server/helpers"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
@@ -57,6 +57,6 @@ func GetToken(c *gin.Context) {
 
 	// Finally, return the welcome message to the user, along with their
 	// username given in the token
-	foreox.Usernames.LoadOrStore(tknStr, claims.Username)
+	helpers.AddUsername(tknStr, claims.Username)
 	c.Writer.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
 }

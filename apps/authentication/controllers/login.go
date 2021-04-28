@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"server/apps/accounts"
+	accounts "server/apps/accounts/models"
 	"server/apps/authentication/services"
 	"server/errors"
 

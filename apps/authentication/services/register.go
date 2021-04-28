@@ -2,7 +2,7 @@ package services
 
 import (
 	"context"
-	"server/apps/accounts"
+	accounts "server/apps/accounts/models"
 	"server/constants"
 	"server/database"
 	errors "server/errors"

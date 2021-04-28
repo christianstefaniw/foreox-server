@@ -3,7 +3,7 @@ package services
 import (
 	"context"
 	"fmt"
-	"server/apps/accounts"
+	accounts "server/apps/accounts/models"
 	"server/database"
 	errors "server/errors"
 

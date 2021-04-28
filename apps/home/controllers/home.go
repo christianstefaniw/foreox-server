@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"encoding/json"
-	"server/foreox/settings"
+	"server/helpers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -14,6 +14,6 @@ type username struct {
 func Home(c *gin.Context) {
 	// TODO handle error
 	tknStr, _ := c.Cookie("authToken")
-	usernameLoad, _ := settings.Usernames.Load(tknStr)
-	json.NewEncoder(c.Writer).Encode(username{Username: usernameLoad.(string)})
+	usernameStr := helpers.GetUsername(tknStr)
+	json.NewEncoder(c.Writer).Encode(username{Username: usernameStr})
 }
