@@ -7,6 +7,7 @@ import (
 	"server/accounts"
 	"server/errors"
 	"server/models"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -44,16 +45,19 @@ func LoginHandler(c *gin.Context) {
 	authedUser, err := accounts.Login(user.Username, user.Password)
 	if err != nil {
 		http.Error(c.Writer, err.Error(), http.StatusForbidden)
-	} else {
-		cookie := &http.Cookie{
-			Name:     "authToken",
-			Value:    authedUser.Token,
-			Path:     "/",
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteNoneMode,
-		}
-		http.SetCookie(c.Writer, cookie)
-		json.NewEncoder(c.Writer).Encode(authedUser)
+		return
 	}
+	cookie := &http.Cookie{
+		Name:  "authToken",
+		Value: authedUser.Token,
+		Path:  "/",
+		// HttpOnly: true,
+		HttpOnly: false,
+		Secure:   true,
+		Expires:  time.Now().Add(time.Hour * 168),
+		SameSite: http.SameSiteNoneMode,
+	}
+	http.SetCookie(c.Writer, cookie)
+	json.NewEncoder(c.Writer).Encode(authedUser)
+
 }

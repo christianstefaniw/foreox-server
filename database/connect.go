@@ -28,10 +28,8 @@ func Connect() {
 	if err != nil {
 		log.Fatal(errors.Wrap(err, err.Error()))
 	}
-	// defer is being run after function is complete
-	defer client.Disconnect(context.TODO())
 	// Check the connection
-	err = client.Ping(context.TODO(), nil)
+	err = client.Ping(context.Background(), nil)
 
 	if err != nil {
 		log.Fatal(errors.Wrap(err, err.Error()))

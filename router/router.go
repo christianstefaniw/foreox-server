@@ -1,8 +1,8 @@
 package router
 
 import (
+	"fmt"
 	"server/controllers"
-	"server/messaging"
 	"server/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -12,14 +12,15 @@ import (
 func Router() *gin.Engine {
 
 	router := gin.Default()
-	rm := messaging.NewRoom()
-	go rm.Serve()
 	router.Use(middleware.CORSMiddleware())
 
 	// Routes
-	router.LoadHTMLFiles("index.html")
+	// router.LoadHTMLFiles("index.html")
+	// router.GET("/", func(c *gin.Context) {
+	// 	c.HTML(200, "index.html", nil)
+	// })
 	router.GET("/", func(c *gin.Context) {
-		c.HTML(200, "index.html", nil)
+		fmt.Fprint(c.Writer, "Welcome!")
 	})
 	router.POST("/api/user/login", controllers.LoginHandler)
 	router.POST("/api/user/register", controllers.RegisterHandler)
