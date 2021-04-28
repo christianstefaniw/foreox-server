@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// collection object/instance - used across database package
+// collection instance - used across database package
 var Collection *mongo.Collection
 
 // connect to mongodb
@@ -24,14 +24,12 @@ func Connect() {
 	clientOptions := options.Client().ApplyURI(connectionString)
 
 	// connect to MongoDB
-	client, err := mongo.Connect(context.TODO(), clientOptions)
+	client, err := mongo.Connect(context.Background(), clientOptions)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, err.Error()))
 	}
-	// defer is being run after function is complete
-	defer client.Disconnect(context.TODO())
 	// Check the connection
-	err = client.Ping(context.TODO(), nil)
+	err = client.Ping(context.Background(), nil)
 
 	if err != nil {
 		log.Fatal(errors.Wrap(err, err.Error()))

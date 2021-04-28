@@ -1,108 +1,116 @@
 package messaging
 
 import (
+	"context"
 	"fmt"
-	"server/errors"
+	errors "server/errors"
 	"server/models"
 	"time"
 
 	"github.com/gorilla/websocket"
 )
 
-// TODO handle errors
-// TODO make msg chan buffered and handle when buffer gets too big
+const (
+	readWait       = 5 * time.Second
+	writeWait      = 5 * time.Second
+	pongWait       = 60 * time.Second
+	pingPeriod     = (pongWait * 9) / 10
+	maxMessageSize = 512
+)
+
+var (
+	newLine = []byte{'\n'}
+)
+
 type client struct {
-	room *Room
-	conn *websocket.Conn
-	msg  chan []byte
-	done chan interface{}
+	room   *Room
+	conn   *websocket.Conn
+	msg    chan []byte
+	ctx    context.Context
+	cancel context.CancelFunc
 	models.User
 }
 
 func (c *client) unregister() {
-	close(c.done)
+	close(c.msg)
 	c.room.unregister <- c
 	c.conn.Close()
 }
 
-func (c *client) read(heartbeat chan interface{}, pulseInterval time.Duration) {
-	pulse := time.NewTicker(pulseInterval)
-	message := make(chan []byte)
-
-	go func() {
-		// read message sent to THIS connection
-		_, msg, err := c.conn.ReadMessage()
-		if err != nil {
-			if err.Error() != "websocket: close 1001 (goig away)" {
-				errors.PrintError(errors.GetErrorKey(), errors.Wrap(err, err.Error()))
-			}
-			fmt.Println("disconnecting...")
-			c.unregister()
-			return
-		}
-		message <- msg
-	}()
+func (c *client) read() {
+	c.conn.SetReadLimit(maxMessageSize)
+	c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	c.conn.SetPongHandler(func(string) error {
+		c.conn.SetReadDeadline(time.Now().Add(pongWait))
+		return nil
+	})
 
 	for {
 		select {
-		case <-pulse.C:
-			sendPulse(heartbeat)
-		case msg := <-message:
-			// send message to all clients in room
-			c.room.broadcast <- msg
-		case _, ok := <-c.done:
-			if !ok {
-				return
+		case <-c.ctx.Done():
+			return
+		default:
+		}
+		_, message, err := c.conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+				errors.PrintError(errors.GetErrorKey(), errors.Wrap(err, err.Error()))
 			}
+			c.cancel()
+		} else {
+			c.room.broadcast <- message
 		}
 	}
 }
 
-func (c *client) write(heartbeat chan interface{}, pulseInterval time.Duration) {
-	pulse := time.NewTicker(pulseInterval)
+func (c *client) write() {
+	ticker := time.NewTicker(pingPeriod)
+
 	for {
 		select {
-		case <-pulse.C:
-			sendPulse(heartbeat)
 		case msg := <-c.msg:
-			c.conn.WriteMessage(websocket.TextMessage, msg)
-		case _, ok := <-c.done:
-			if !ok {
-				return
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			w, err := c.conn.NextWriter(websocket.TextMessage)
+			if err != nil {
+				c.cancel()
 			}
+
+			w.Write(msg)
+
+			if qued := len(c.msg); qued > 0 {
+				for i := 0; i < qued; i++ {
+					w.Write(newLine)
+					w.Write(<-c.msg)
+				}
+			}
+
+			if err := w.Close(); err != nil {
+				c.cancel()
+			}
+		case <-ticker.C:
+			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				c.cancel()
+			}
+		case <-c.ctx.Done():
+			return
 		}
 	}
 }
 
 func (c *client) doWork() {
-	writeHeartbeat := make(chan interface{}, 1)
-	readHeartbeat := make(chan interface{}, 1)
-	const timeout = 10 * time.Second
 
-	go c.write(writeHeartbeat, timeout/2)
-	go c.read(readHeartbeat, timeout/2)
+	go c.read()
+	go c.write()
 
 	for {
 		select {
-		case _, ok := <-readHeartbeat:
-			fmt.Println("heartbeat read")
-			if !ok {
-				return
-			}
-		case _, ok := <-writeHeartbeat:
-			fmt.Println("heartbeat write")
-			if !ok {
-				return
-			}
-		case _, ok := <-c.done:
-			fmt.Println("done channel closed")
-			if !ok {
-				return
-			}
-		case <-c.room.ctx.Done():
+		case <-c.ctx.Done():
 			c.unregister()
+			fmt.Println("client closed")
 			return
-		case <-time.After(timeout):
+
+		case <-c.room.ctx.Done():
 			c.unregister()
 			return
 		}
@@ -110,7 +118,8 @@ func (c *client) doWork() {
 }
 
 func ServeWs(r *Room, conn *websocket.Conn) {
-	c := &client{room: r, conn: conn, msg: make(chan []byte), done: make(chan interface{})}
+	ctx, cancel := context.WithCancel(context.Background())
+	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
 
 	c.room.register <- c
 
