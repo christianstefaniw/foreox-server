@@ -51,10 +51,8 @@ func LoginHandler(c *gin.Context) {
 		Name:  "authToken",
 		Value: authedUser.Token,
 		Path:  "/",
-		// HttpOnly: true,
-		HttpOnly: false,
+		HttpOnly: true,
 		Secure:   true,
-		Expires:  time.Now().Add(time.Hour * 168),
 		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(c.Writer, cookie)
