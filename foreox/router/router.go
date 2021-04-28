@@ -15,9 +15,9 @@ func Router() *gin.Engine {
 	router := gin.Default()
 	router.Use(middleware.CORSMiddleware())
 
-	home.GenRoutes(router)
-	auth.GenRoutes(router)
-	messaging.GenRoutes(router)
+	home.GenRoutes(router, "")
+	auth.GenRoutes(router, "auth")
+	messaging.GenRoutes(router, "messaging")
 
 	// Routes
 	// router.LoadHTMLFiles("index.html")
