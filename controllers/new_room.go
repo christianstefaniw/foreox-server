@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"net/http"
 	"server/messaging"
 
 	"github.com/gin-gonic/gin"
@@ -11,5 +12,5 @@ func NewRoom(c *gin.Context) {
 
 	go room.Serve()
 
-	c.Writer.WriteHeader(200)
+	c.Writer.WriteHeader(http.StatusCreated)
 }
