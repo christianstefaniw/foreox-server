@@ -18,6 +18,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func ServeWs(c *gin.Context) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	var rm *services.Room
 	fmt.Println(c.Param("id"))
 	rmId := c.Param("id")
