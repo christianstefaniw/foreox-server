@@ -1,12 +1,16 @@
 package controllers
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"server/helpers"
+	"server/database"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type claims struct {
@@ -55,8 +59,11 @@ func GetToken(c *gin.Context) {
 		return
 	}
 
-	// Finally, return the welcome message to the user, along with their
-	// username given in the token
-	helpers.AddUsername(tknStr, claims.Username)
-	c.Writer.WriteHeader(http.StatusOK)
+	userDocId, _ := primitive.ObjectIDFromHex(claims.Id)
+	database.Collection.UpdateOne(context.Background(), bson.M{"_id": userDocId},
+		bson.D{
+			{Key: "$set", Value: bson.D{{Key: "token", Value: tknStr}}},
+		})
+
+	json.NewEncoder(c.Writer).Encode(claims)
 }

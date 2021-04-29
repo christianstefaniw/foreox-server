@@ -1,19 +1,19 @@
 package controllers
 
 import (
+	"context"
 	"encoding/json"
-	"server/helpers"
+	accounts "server/apps/accounts/models"
+	"server/database"
 
 	"github.com/gin-gonic/gin"
+	"go.mongodb.org/mongo-driver/bson"
 )
-
-type username struct {
-	Username string `json:"username"`
-}
 
 func Home(c *gin.Context) {
 	// TODO handle error
+	var user accounts.User
 	tknStr, _ := c.Cookie("authToken")
-	usernameStr := helpers.GetUsername(tknStr)
-	json.NewEncoder(c.Writer).Encode(username{Username: usernameStr})
+	database.Collection.FindOne(context.Background(), bson.M{"token": tknStr}).Decode(&user)
+	json.NewEncoder(c.Writer).Encode(user)
 }

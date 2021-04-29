@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"server/apps/messaging/services"
 	"server/errors"
@@ -18,8 +17,9 @@ var upgrader = websocket.Upgrader{
 }
 
 func ServeWs(c *gin.Context) {
+	upgrader.CheckOrigin = func(r *http.Request) bool { return true }
+
 	var rm *services.Room
-	fmt.Println(c.Param("id"))
 	rmId := c.Param("id")
 
 	rmObjectId, err := primitive.ObjectIDFromHex(rmId)
@@ -35,7 +35,8 @@ func ServeWs(c *gin.Context) {
 		return
 	}
 
-	conn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+
 	services.ServeWs(rm, conn)
 	c.Writer.WriteHeader(http.StatusAccepted)
 }

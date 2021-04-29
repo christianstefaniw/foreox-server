@@ -32,7 +32,7 @@ func ServeWs(r *Room, conn *websocket.Conn) {
 var activeRooms sync.Map
 
 func GetRoom(id primitive.ObjectID) (*Room, bool) {
-	rm, ok := activeRooms.Load(id)
+	rm, ok := activeRooms.Load(id.String())
 	return rm.(*Room), ok
 }
 
@@ -51,10 +51,8 @@ func NewRoom() *Room {
 }
 
 func (r *Room) Serve() {
-	activeRooms.LoadOrStore(r.id, r)
-
-	fmt.Println(r.id)
-
+	activeRooms.LoadOrStore(r.id.String(), r)
+	fmt.Println(r.id.String())
 	for {
 		select {
 		case msg := <-r.broadcast:

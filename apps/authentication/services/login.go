@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	accounts "server/apps/accounts/models"
 	"server/constants"
 	"server/database"
@@ -30,8 +29,6 @@ func Login(username, password string) (accounts.User, error) {
 	if err != nil {
 		return user, errors.Wrap(err, err.Error())
 	}
-
-	fmt.Println(user.ID)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":       user.ID,

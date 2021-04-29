@@ -51,6 +51,7 @@ func (c *client) read() {
 			return
 		default:
 		}
+
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
