@@ -58,5 +58,5 @@ func GetToken(c *gin.Context) {
 	// Finally, return the welcome message to the user, along with their
 	// username given in the token
 	helpers.AddUsername(tknStr, claims.Username)
-	c.Writer.Write([]byte(fmt.Sprintf("Welcome %s!", claims.Username)))
+	c.Writer.WriteHeader(http.StatusOK)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	accounts "server/apps/accounts/models"
+	"server/constants"
 	"server/database"
 	errors "server/errors"
 
@@ -18,6 +19,9 @@ func Login(username, password string) (accounts.User, error) {
 
 	err := database.Collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
 	if err != nil {
+		if err.Error() == constants.MONGO_NO_DOC {
+			return user, errors.Error{Message: "Incorrect username or password"}
+		}
 		return user, errors.Wrap(err, err.Error())
 	}
 
