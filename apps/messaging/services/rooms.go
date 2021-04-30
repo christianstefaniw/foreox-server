@@ -2,7 +2,6 @@ package services
 
 import (
 	"context"
-	"fmt"
 	"sync"
 
 	"github.com/gorilla/websocket"
@@ -50,9 +49,9 @@ func NewRoom() *Room {
 	}
 }
 
-func (r *Room) Serve() {
-	activeRooms.LoadOrStore(r.id.String(), r)
-	fmt.Println(r.id.String())
+func (r *Room) Serve(rmId chan<- string) {
+	rmId <- r.id.Hex()
+	activeRooms.LoadOrStore(r.id.Hex(), r)
 	for {
 		select {
 		case msg := <-r.broadcast:

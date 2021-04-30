@@ -13,7 +13,6 @@ import (
 
 // Logs in user
 func Login(c *gin.Context) {
-	c.Header("Content-Type", "application/json")
 	user := new(accounts.User)
 
 	err := json.NewDecoder(c.Request.Body).Decode(user)
@@ -36,6 +35,5 @@ func Login(c *gin.Context) {
 	}
 
 	http.SetCookie(c.Writer, cookie)
-	json.NewEncoder(c.Writer).Encode(authedUser)
-
+	c.JSON(http.StatusOK, authedUser)
 }

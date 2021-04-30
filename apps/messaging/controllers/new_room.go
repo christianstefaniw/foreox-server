@@ -7,10 +7,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type roomId struct {
+	Id string `json:"id"`
+}
+
 func NewRoom(c *gin.Context) {
 	room := services.NewRoom()
+	rmIdStream := make(chan string, 1)
 
-	go room.Serve()
+	go room.Serve(rmIdStream)
 
-	c.Writer.WriteHeader(http.StatusCreated)
+	roomId := roomId{<-rmIdStream}
+
+	c.JSON(http.StatusCreated, roomId)
 }

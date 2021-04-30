@@ -11,7 +11,6 @@ import (
 
 // Registers user
 func Register(c *gin.Context) {
-	c.Header("Content-Type", "application/json")
 	user := new(accounts.User)
 	err := json.NewDecoder(c.Request.Body).Decode(user)
 
@@ -25,6 +24,6 @@ func Register(c *gin.Context) {
 		http.Error(c.Writer, err.Error(), http.StatusForbidden)
 		return
 	}
-	json.NewEncoder(c.Writer).Encode(user)
 
+	c.JSON(http.StatusCreated, user)
 }
