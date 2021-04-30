@@ -18,10 +18,10 @@ func Router() *gin.Engine {
 	router.Use(middleware.Cors())
 
 	home.GenRoutes(router, "")
-	auth.GenRoutes(router, "/auth")
-	messaging.GenRoutes(router, "/messaging")
-	accounts.GenRoutes(router, "/account")
-	rooms.GenRoutes(router, "/rooms")
+	auth.GenRoutes(router, "auth/")
+	messaging.GenRoutes(router, "messaging/")
+	accounts.GenRoutes(router, "account/")
+	rooms.GenRoutes(router, "rooms/")
 
 	return router
 }
