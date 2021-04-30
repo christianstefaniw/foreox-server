@@ -35,8 +35,7 @@ func ServeWs(c *gin.Context) {
 		return
 	}
 
-	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	conn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
 
 	services.ServeWs(rm, conn)
-	c.Writer.WriteHeader(http.StatusAccepted)
 }

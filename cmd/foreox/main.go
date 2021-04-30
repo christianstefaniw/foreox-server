@@ -10,7 +10,6 @@ import (
 	"server/foreox/router"
 	"server/foreox/settings"
 	"server/helpers"
-	"server/middleware"
 )
 
 func main() {
@@ -22,8 +21,6 @@ func main() {
 	helpers.LoadDotEnv()
 	database.Connect()
 	defer database.Collection.Database().Client().Disconnect(context.Background())
-
-	router.Use(middleware.CORSMiddleware())
 
 	fmt.Println("Starting server on the port 8080...")
 	router.Run(":" + os.Getenv("PORT"))
