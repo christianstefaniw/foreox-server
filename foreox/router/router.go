@@ -5,6 +5,7 @@ import (
 	auth "server/apps/authentication/routes"
 	home "server/apps/home/routes"
 	messaging "server/apps/messaging/routes"
+	rooms "server/apps/rooms/routes"
 	"server/middleware"
 
 	"github.com/gin-gonic/gin"
@@ -17,14 +18,10 @@ func Router() *gin.Engine {
 	router.Use(middleware.Cors())
 
 	home.GenRoutes(router, "")
-	auth.GenRoutes(router, "auth")
-	messaging.GenRoutes(router, "messaging")
-	accounts.GenRoutes(router, "account")
+	auth.GenRoutes(router, "/auth")
+	messaging.GenRoutes(router, "/messaging")
+	accounts.GenRoutes(router, "/account")
+	rooms.GenRoutes(router, "/rooms")
 
-	// Routes
-	// router.LoadHTMLFiles("index.html")
-	// router.GET("/", func(c *gin.Context) {
-	// 	c.HTML(200, "index.html", nil)
-	// })
 	return router
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -17,15 +16,6 @@ type Room struct {
 	name       string
 	ctx        context.Context
 	cancel     context.CancelFunc
-}
-
-func ServeWs(r *Room, conn *websocket.Conn) {
-	ctx, cancel := context.WithCancel(context.Background())
-	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
-
-	c.room.register <- c
-
-	go c.doWork()
 }
 
 var activeRooms sync.Map

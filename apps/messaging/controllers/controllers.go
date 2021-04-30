@@ -10,7 +10,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// specifies parameters for upgrading an http connection to a ws connection
+type roomId struct {
+	Id string `json:"id"`
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -38,4 +41,15 @@ func ServeWs(c *gin.Context) {
 	conn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
 
 	services.ServeWs(rm, conn)
+}
+
+func NewRoom(c *gin.Context) {
+	room := services.NewRoom()
+	rmIdStream := make(chan string, 1)
+
+	go room.Serve(rmIdStream)
+
+	roomId := roomId{<-rmIdStream}
+
+	c.JSON(http.StatusCreated, roomId)
 }

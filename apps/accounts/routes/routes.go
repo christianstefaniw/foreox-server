@@ -9,5 +9,5 @@ import (
 )
 
 func GenRoutes(r *gin.Engine, subdir string) {
-	r.GET(settings.API_PATH+subdir+"/info", middleware.Auth(), controllers.AccountInfo)
+	r.GET(settings.API_PATH+subdir+"info", middleware.Auth(), controllers.AccountInfo)
 }
