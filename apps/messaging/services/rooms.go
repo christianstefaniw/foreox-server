@@ -20,8 +20,8 @@ type Room struct {
 
 var activeRooms sync.Map
 
-func GetRoom(id primitive.ObjectID) (*Room, bool) {
-	rm, ok := activeRooms.Load(id.String())
+func GetRoom(id string) (*Room, bool) {
+	rm, ok := activeRooms.Load(id)
 	return rm.(*Room), ok
 }
 
