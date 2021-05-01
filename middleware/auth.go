@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	accounts "server/apps/accounts/models"
+	"server/constants"
 	"server/database"
 
 	"github.com/dgrijalva/jwt-go"
@@ -60,10 +61,18 @@ func Auth() gin.HandlerFunc {
 		}
 		var user accounts.User
 		userDocId, _ := primitive.ObjectIDFromHex(claims.Id)
-		userDoc := database.Collection.FindOneAndUpdate(context.Background(), bson.M{"_id": userDocId},
+		userDoc := database.Database.FindOneAndUpdate(context.Background(), constants.USER_COLL, bson.M{"_id": userDocId},
 			bson.D{
 				{Key: "$set", Value: bson.D{{Key: "token", Value: tknStr}}},
 			})
+		if userDoc.Err() != nil {
+			if userDoc.Err().Error() == constants.MONGO_NO_DOC {
+				c.AbortWithStatus(http.StatusUnauthorized)
+				return
+			}
+			c.AbortWithStatus(http.StatusInternalServerError)
+			return
+		}
 		userDoc.Decode(&user)
 		c.Set("user", user)
 	}

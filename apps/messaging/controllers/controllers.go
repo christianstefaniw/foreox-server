@@ -1,16 +1,17 @@
 package controllers
 
 import (
+	"context"
 	"net/http"
+	accounts "server/apps/accounts/models"
 	"server/apps/messaging/services"
+	"server/constants"
+	"server/database"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"go.mongodb.org/mongo-driver/bson"
 )
-
-type roomId struct {
-	Id string `json:"id"`
-}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -30,17 +31,15 @@ func ServeWs(c *gin.Context) {
 	}
 
 	conn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
-
 	services.ServeWs(rm, conn)
 }
 
 func NewRoom(c *gin.Context) {
 	room := services.NewRoom()
-	rmIdStream := make(chan string, 1)
-
-	go room.Serve(rmIdStream)
-
-	roomId := roomId{<-rmIdStream}
-
-	c.JSON(http.StatusCreated, roomId)
+	//TODO error
+	user, _ := c.Get("user")
+	go room.Serve()
+	database.Database.Database.Collection(constants.USER_COLL).
+		UpdateOne(context.Background(), bson.M{"_id": user.(accounts.User).ID}, bson.M{"$push": bson.M{"rooms": room.Id}})
+	c.JSON(http.StatusCreated, room)
 }

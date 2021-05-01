@@ -34,9 +34,7 @@ var (
 func ServeWs(r *Room, conn *websocket.Conn) {
 	ctx, cancel := context.WithCancel(context.Background())
 	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
-
 	c.room.register <- c
-
 	go c.doWork()
 }
 
@@ -109,7 +107,6 @@ func (c *client) write() {
 }
 
 func (c *client) doWork() {
-
 	go c.read()
 	go c.write()
 
