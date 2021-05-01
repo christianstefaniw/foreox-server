@@ -14,13 +14,14 @@ import (
 
 func main() {
 	initLogOutput()
+	helpers.LoadDotEnv()
+
+	database.Connect()
+	defer database.Database.Database.Client().Disconnect(context.Background())
+
 	settings.Settings()
 
 	router := router.Router()
-
-	helpers.LoadDotEnv()
-	database.Connect()
-	defer database.Collection.Database().Client().Disconnect(context.Background())
 
 	fmt.Println("Starting server on the port 8080...")
 	router.Run(":" + os.Getenv("PORT"))
