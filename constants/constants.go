@@ -1,5 +1,7 @@
 package constants
 
 const (
-	MONGO_NO_DOC string = "mongo: no documents in result"
+	MONGO_NO_DOC = "mongo: no documents in result"
+	USER_COLL    = "users"
+	ROOMS_COLL   = "rooms"
 )

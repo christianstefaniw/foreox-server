@@ -3,44 +3,38 @@ package services
 import (
 	"context"
 	"fmt"
+	"os"
+	"server/constants"
+	"server/database"
+	"server/errors"
 	"sync"
 
-	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Room struct {
-	id         primitive.ObjectID
+	Id         primitive.ObjectID `bson:"_id" json:"id"`
 	clients    map[*client]bool
 	broadcast  chan []byte
 	register   chan *client
 	unregister chan *client
-	name       string
+	Name       string `json:"name"`
 	ctx        context.Context
 	cancel     context.CancelFunc
 }
 
-func ServeWs(r *Room, conn *websocket.Conn) {
-	ctx, cancel := context.WithCancel(context.Background())
-	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
-
-	c.room.register <- c
-
-	go c.doWork()
-}
-
 var activeRooms sync.Map
 
-func GetRoom(id primitive.ObjectID) (*Room, bool) {
+func GetRoom(id string) (*Room, bool) {
 	rm, ok := activeRooms.Load(id)
 	return rm.(*Room), ok
 }
 
-func NewRoom() *Room {
+func NewRoom(name string) *Room {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Room{
-		id:         primitive.NewObjectID(),
-		name:       "new room",
+	rm := &Room{
+		Id:         primitive.NewObjectID(),
+		Name:       name,
 		clients:    make(map[*client]bool),
 		broadcast:  make(chan []byte),
 		register:   make(chan *client),
@@ -48,13 +42,27 @@ func NewRoom() *Room {
 		ctx:        ctx,
 		cancel:     cancel,
 	}
+
+	err := rm.save()
+	if err != nil {
+		fmt.Fprint(os.Stderr, errors.Wrap(err, err.Error()))
+		return nil
+	}
+
+	return rm
+}
+
+func (r *Room) roomFromDatabase() {
+	ctx, cancel := context.WithCancel(context.Background())
+	r.clients = make(map[*client]bool)
+	r.broadcast = make(chan []byte)
+	r.register = make(chan *client)
+	r.unregister = make(chan *client)
+	r.ctx = ctx
+	r.cancel = cancel
 }
 
 func (r *Room) Serve() {
-	activeRooms.LoadOrStore(r.id, r)
-
-	fmt.Println(r.id)
-
 	for {
 		select {
 		case msg := <-r.broadcast:
@@ -68,4 +76,24 @@ func (r *Room) Serve() {
 			delete(r.clients, client)
 		}
 	}
+}
+
+func (r *Room) save() error {
+	r.saveToActiveRooms()
+	return r.saveToDb()
+}
+
+func (r *Room) saveToActiveRooms() {
+	activeRooms.LoadOrStore(r.Id.Hex(), r)
+}
+
+func (r *Room) saveToDb() error {
+	_, err := database.Database.InsertOne(context.Background(), constants.ROOMS_COLL, r)
+	return err
+}
+
+func (r *Room) StartFromDb() {
+	r.roomFromDatabase()
+	r.saveToActiveRooms()
+	go r.Serve()
 }

@@ -11,9 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Logs in user
+func CheckLoggedIn(c *gin.Context) {
+	// if this handler is run the user is logged in but might as well double check
+	_, ok := c.Get("user")
+	if !ok {
+		c.Writer.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+}
+
 func Login(c *gin.Context) {
-	c.Header("Content-Type", "application/json")
 	user := new(accounts.User)
 
 	err := json.NewDecoder(c.Request.Body).Decode(user)
@@ -36,6 +43,23 @@ func Login(c *gin.Context) {
 	}
 
 	http.SetCookie(c.Writer, cookie)
-	json.NewEncoder(c.Writer).Encode(authedUser)
+	c.JSON(http.StatusOK, authedUser)
+}
 
+func Register(c *gin.Context) {
+	user := new(accounts.User)
+	err := json.NewDecoder(c.Request.Body).Decode(user)
+
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = services.Register(user)
+	if err != nil {
+		http.Error(c.Writer, err.Error(), http.StatusForbidden)
+		return
+	}
+
+	c.JSON(http.StatusCreated, user)
 }

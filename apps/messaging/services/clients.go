@@ -31,6 +31,13 @@ var (
 	newLine = []byte{'\n'}
 )
 
+func ServeWs(r *Room, conn *websocket.Conn) {
+	ctx, cancel := context.WithCancel(context.Background())
+	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
+	c.room.register <- c
+	go c.doWork()
+}
+
 func (c *client) unregister() {
 	close(c.msg)
 	c.room.unregister <- c
@@ -51,6 +58,7 @@ func (c *client) read() {
 			return
 		default:
 		}
+
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
@@ -99,7 +107,6 @@ func (c *client) write() {
 }
 
 func (c *client) doWork() {
-
 	go c.read()
 	go c.write()
 

@@ -2,8 +2,8 @@ package services
 
 import (
 	"context"
-	"fmt"
 	accounts "server/apps/accounts/models"
+	"server/constants"
 	"server/database"
 	errors "server/errors"
 
@@ -16,8 +16,11 @@ import (
 func Login(username, password string) (accounts.User, error) {
 	var user accounts.User
 
-	err := database.Collection.FindOne(context.Background(), bson.M{"username": username}).Decode(&user)
+	err := database.Database.FindOne(context.Background(), constants.USER_COLL, bson.M{"username": username}).Decode(&user)
 	if err != nil {
+		if err.Error() == constants.MONGO_NO_DOC {
+			return user, errors.Error{Message: "Incorrect username or password"}
+		}
 		return user, errors.Wrap(err, err.Error())
 	}
 
@@ -26,8 +29,6 @@ func Login(username, password string) (accounts.User, error) {
 	if err != nil {
 		return user, errors.Wrap(err, err.Error())
 	}
-
-	fmt.Println(user.ID)
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id":       user.ID,
