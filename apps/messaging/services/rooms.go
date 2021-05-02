@@ -52,6 +52,15 @@ func NewRoom(name string) *Room {
 	return rm
 }
 
+func (r *Room) CheckClientInRoom(tkn string) bool {
+	for client := range r.clients {
+		if client.Token == tkn {
+			return true
+		}
+	}
+	return false
+}
+
 func (r *Room) roomFromDatabase() {
 	ctx, cancel := context.WithCancel(context.Background())
 	r.clients = make(map[*client]bool)

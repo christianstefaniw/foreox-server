@@ -16,7 +16,7 @@ type client struct {
 	msg    chan []byte
 	ctx    context.Context
 	cancel context.CancelFunc
-	accounts.User
+	*accounts.User
 }
 
 const (
@@ -31,9 +31,9 @@ var (
 	newLine = []byte{'\n'}
 )
 
-func ServeWs(r *Room, conn *websocket.Conn) {
+func ServeWs(r *Room, user *accounts.User, conn *websocket.Conn) {
 	ctx, cancel := context.WithCancel(context.Background())
-	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel}
+	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel, User: user}
 	c.room.register <- c
 	go c.doWork()
 }

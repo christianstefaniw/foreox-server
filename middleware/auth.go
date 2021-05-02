@@ -74,6 +74,6 @@ func Auth() gin.HandlerFunc {
 			return
 		}
 		userDoc.Decode(&user)
-		c.Set("user", user)
+		c.Set("user", &user)
 	}
 }

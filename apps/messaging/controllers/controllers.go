@@ -36,7 +36,11 @@ func ServeWs(c *gin.Context) {
 	}
 
 	conn, _ := upgrader.Upgrade(c.Writer, c.Request, nil)
-	services.ServeWs(rm, conn)
+	user, _ := c.Get("user")
+	if rm.CheckClientInRoom(user.(*accounts.User).Token) {
+		return
+	}
+	services.ServeWs(rm, user.(*accounts.User), conn)
 }
 
 func NewRoom(c *gin.Context) {

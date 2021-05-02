@@ -45,7 +45,7 @@ func AllUsersRooms(c *gin.Context) {
 	var allRooms []rooms.Room
 	user, _ := c.Get("user")
 
-	for _, roomId := range user.(accounts.User).Rooms {
+	for _, roomId := range user.(*accounts.User).Rooms {
 		var rm rooms.Room
 		database.Database.FindOne(context.Background(), constants.ROOMS_COLL, bson.M{"_id": roomId}).Decode(&rm)
 		allRooms = append(allRooms, rm)
