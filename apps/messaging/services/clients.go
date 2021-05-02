@@ -44,6 +44,10 @@ func (c *client) unregister() {
 	c.conn.Close()
 }
 
+func (c *client) Close() {
+	c.cancel()
+}
+
 func (c *client) read() {
 	c.conn.SetReadLimit(maxMessageSize)
 	c.conn.SetReadDeadline(time.Now().Add(pongWait))

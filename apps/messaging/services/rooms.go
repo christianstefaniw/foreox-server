@@ -52,13 +52,13 @@ func NewRoom(name string) *Room {
 	return rm
 }
 
-func (r *Room) CheckClientInRoom(tkn string) bool {
+func (r *Room) CheckClientInRoom(tkn string) (*client, bool) {
 	for client := range r.clients {
 		if client.Token == tkn {
-			return true
+			return client, true
 		}
 	}
-	return false
+	return nil, false
 }
 
 func (r *Room) roomFromDatabase() {
