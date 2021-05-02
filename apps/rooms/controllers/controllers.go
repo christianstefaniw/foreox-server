@@ -18,7 +18,7 @@ func JoinRoom(c *gin.Context) {
 	//TODO error
 	user, _ := c.Get("user")
 	database.Database.Database.Collection(constants.USER_COLL).
-		UpdateOne(context.Background(), bson.M{"_id": user.(accounts.User).ID}, bson.M{"$push": bson.M{"Rooms": rmId}})
+		UpdateOne(context.Background(), bson.M{"_id": user.(*accounts.User).ID}, bson.M{"$push": bson.M{"Rooms": rmId}})
 }
 
 func RoomInfo(c *gin.Context) {

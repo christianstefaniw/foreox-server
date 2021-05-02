@@ -51,6 +51,6 @@ func NewRoom(c *gin.Context) {
 	user, _ := c.Get("user")
 	go room.Serve()
 	database.Database.Database.Collection(constants.USER_COLL).
-		UpdateOne(context.Background(), bson.M{"_id": user.(accounts.User).ID}, bson.M{"$push": bson.M{"rooms": room.Id}})
+		UpdateOne(context.Background(), bson.M{"_id": user.(*accounts.User).ID}, bson.M{"$push": bson.M{"rooms": room.Id}})
 	c.JSON(http.StatusCreated, room)
 }
