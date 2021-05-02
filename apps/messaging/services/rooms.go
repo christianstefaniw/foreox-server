@@ -30,11 +30,11 @@ func GetRoom(id string) (*Room, bool) {
 	return rm.(*Room), ok
 }
 
-func NewRoom() *Room {
+func NewRoom(name string) *Room {
 	ctx, cancel := context.WithCancel(context.Background())
 	rm := &Room{
 		Id:         primitive.NewObjectID(),
-		Name:       "new room",
+		Name:       name,
 		clients:    make(map[*client]bool),
 		broadcast:  make(chan []byte),
 		register:   make(chan *client),

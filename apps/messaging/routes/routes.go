@@ -10,5 +10,5 @@ import (
 
 func GenRoutes(r *gin.Engine, subdir string) {
 	r.GET(settings.API_PATH+subdir+"ws/:id", middleware.Auth(), controllers.ServeWs)
-	r.GET(settings.API_PATH+subdir+"newroom", middleware.Auth(), controllers.NewRoom)
+	r.POST(settings.API_PATH+subdir+"newroom", middleware.Auth(), controllers.NewRoom)
 }

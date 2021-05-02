@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	accounts "server/apps/accounts/models"
 	"server/apps/messaging/services"
@@ -12,6 +13,10 @@ import (
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson"
 )
+
+type roomName struct {
+	Name string `json:"roomName"`
+}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -35,7 +40,9 @@ func ServeWs(c *gin.Context) {
 }
 
 func NewRoom(c *gin.Context) {
-	room := services.NewRoom()
+	var roomNameStruct roomName
+	json.NewDecoder(c.Request.Body).Decode(&roomNameStruct)
+	room := services.NewRoom(roomNameStruct.Name)
 	//TODO error
 	user, _ := c.Get("user")
 	go room.Serve()
