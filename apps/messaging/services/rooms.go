@@ -42,6 +42,7 @@ func NewRoom(name string) *Room {
 		broadcast:  make(chan *message),
 		register:   make(chan *client),
 		unregister: make(chan *client),
+		Messages:   make([]*message, 0),
 		ctx:        ctx,
 		cancel:     cancel,
 	}
