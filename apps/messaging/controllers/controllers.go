@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	accounts "server/apps/accounts/models"
 	"server/apps/messaging/services"
