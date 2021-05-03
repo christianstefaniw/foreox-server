@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	accounts "server/apps/accounts/models"
 	"server/errors"
@@ -13,7 +14,7 @@ import (
 type client struct {
 	room   *Room
 	conn   *websocket.Conn
-	msg    chan []byte
+	msg    chan *message
 	ctx    context.Context
 	cancel context.CancelFunc
 	*accounts.User
@@ -27,13 +28,9 @@ const (
 	maxMessageSize = 512
 )
 
-var (
-	newLine = []byte{'\n'}
-)
-
 func ServeWs(r *Room, user *accounts.User, conn *websocket.Conn) {
 	ctx, cancel := context.WithCancel(context.Background())
-	c := &client{room: r, conn: conn, msg: make(chan []byte, 256), ctx: ctx, cancel: cancel, User: user}
+	c := &client{room: r, conn: conn, msg: make(chan *message, 256), ctx: ctx, cancel: cancel, User: user}
 	c.room.register <- c
 	go c.doWork()
 }
@@ -42,6 +39,10 @@ func (c *client) unregister() {
 	close(c.msg)
 	c.room.unregister <- c
 	c.conn.Close()
+}
+
+func (c *client) Close() {
+	c.cancel()
 }
 
 func (c *client) read() {
@@ -66,7 +67,7 @@ func (c *client) read() {
 			}
 			c.cancel()
 		} else {
-			c.room.broadcast <- message
+			c.room.broadcast <- msgStringToStruct(message, c.User)
 		}
 	}
 }
@@ -83,12 +84,11 @@ func (c *client) write() {
 				c.cancel()
 			}
 
-			w.Write(msg)
+			json.NewEncoder(w).Encode(msg)
 
 			if qued := len(c.msg); qued > 0 {
 				for i := 0; i < qued; i++ {
-					w.Write(newLine)
-					w.Write(<-c.msg)
+					json.NewEncoder(w).Encode(<-c.msg)
 				}
 			}
 

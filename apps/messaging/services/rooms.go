@@ -9,16 +9,18 @@ import (
 	"server/errors"
 	"sync"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Room struct {
 	Id         primitive.ObjectID `bson:"_id" json:"id"`
 	clients    map[*client]bool
-	broadcast  chan []byte
+	broadcast  chan *message
 	register   chan *client
 	unregister chan *client
-	Name       string `json:"name"`
+	Name       string     `json:"name"`
+	Messages   []*message `json:"messages"`
 	ctx        context.Context
 	cancel     context.CancelFunc
 }
@@ -36,7 +38,7 @@ func NewRoom(name string) *Room {
 		Id:         primitive.NewObjectID(),
 		Name:       name,
 		clients:    make(map[*client]bool),
-		broadcast:  make(chan []byte),
+		broadcast:  make(chan *message),
 		register:   make(chan *client),
 		unregister: make(chan *client),
 		ctx:        ctx,
@@ -52,19 +54,19 @@ func NewRoom(name string) *Room {
 	return rm
 }
 
-func (r *Room) CheckClientInRoom(tkn string) bool {
+func (r *Room) CheckClientInRoom(tkn string) (*client, bool) {
 	for client := range r.clients {
 		if client.Token == tkn {
-			return true
+			return client, true
 		}
 	}
-	return false
+	return nil, false
 }
 
 func (r *Room) roomFromDatabase() {
 	ctx, cancel := context.WithCancel(context.Background())
 	r.clients = make(map[*client]bool)
-	r.broadcast = make(chan []byte)
+	r.broadcast = make(chan *message)
 	r.register = make(chan *client)
 	r.unregister = make(chan *client)
 	r.ctx = ctx
@@ -75,6 +77,8 @@ func (r *Room) Serve() {
 	for {
 		select {
 		case msg := <-r.broadcast:
+			// TODO error
+			_ = r.saveMessage(msg)
 			for c := range r.clients {
 				c.msg <- msg
 			}
@@ -85,6 +89,12 @@ func (r *Room) Serve() {
 			delete(r.clients, client)
 		}
 	}
+}
+
+func (r *Room) saveMessage(msg *message) error {
+	_, err := database.Database.UpdateOne(context.Background(), constants.ROOMS_COLL, bson.M{"_id": r.Id},
+		bson.M{"$push": bson.M{"messages": msg}})
+	return err
 }
 
 func (r *Room) save() error {
