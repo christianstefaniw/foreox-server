@@ -20,6 +20,7 @@ type Room struct {
 	register   chan *client
 	unregister chan *client
 	Name       string     `json:"name"`
+	Image      string     `json:"image"`
 	Messages   []*message `json:"messages"`
 	ctx        context.Context
 	cancel     context.CancelFunc
