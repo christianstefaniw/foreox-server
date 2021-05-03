@@ -9,6 +9,7 @@ import (
 	"server/errors"
 	"sync"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -18,7 +19,8 @@ type Room struct {
 	broadcast  chan []byte
 	register   chan *client
 	unregister chan *client
-	Name       string `json:"name"`
+	Name       string   `json:"name"`
+	Messages   []string `json:"messages"`
 	ctx        context.Context
 	cancel     context.CancelFunc
 }
@@ -75,6 +77,8 @@ func (r *Room) Serve() {
 	for {
 		select {
 		case msg := <-r.broadcast:
+			// TODO error
+			_ = r.saveMessage(msg)
 			for c := range r.clients {
 				c.msg <- msg
 			}
@@ -85,6 +89,12 @@ func (r *Room) Serve() {
 			delete(r.clients, client)
 		}
 	}
+}
+
+func (r *Room) saveMessage(msg []byte) error {
+	_, err := database.Database.UpdateOne(context.Background(), constants.ROOMS_COLL, bson.M{"_id": r.Id},
+		bson.M{"$push": bson.M{"messages": string(msg)}})
+	return err
 }
 
 func (r *Room) save() error {

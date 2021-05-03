@@ -27,6 +27,10 @@ func (d *database) FindOne(ctx context.Context, coll string, filter interface{})
 	return d.Database.Collection(coll).FindOne(ctx, filter)
 }
 
+func (d *database) UpdateOne(ctx context.Context, coll string, filter, update interface{}) (*mongo.UpdateResult, error) {
+	return d.Database.Collection(coll).UpdateOne(ctx, filter, update)
+}
+
 func (d *database) FindOneAndUpdate(ctx context.Context, coll string, filter, update interface{}) *mongo.SingleResult {
 	return d.Database.Collection(coll).FindOneAndUpdate(ctx, filter, update)
 }
