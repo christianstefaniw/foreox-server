@@ -9,6 +9,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
 )
 
 type database struct {
@@ -36,6 +37,7 @@ func (d *database) FindOneAndUpdate(ctx context.Context, coll string, filter, up
 }
 
 var Database database
+var Bucket *gridfs.Bucket
 
 func Connect() {
 	connectionString := os.Getenv("DB_URI")
@@ -60,4 +62,16 @@ func Connect() {
 	Database = database{client.Database(dbName)}
 
 	fmt.Println("Collection instance created!")
+
+	// Initalizing the gridFS
+    Bucket, err := gridfs.NewBucket(
+        client.Database("myfiles"),
+    )
+    if err != nil {
+        log.Fatal(err)
+        os.Exit(1)
+    }
+
+	fmt.Println("GridFS bucket created!")
+	fmt.Print(Bucket)
 }
