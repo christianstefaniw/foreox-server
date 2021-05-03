@@ -16,11 +16,11 @@ import (
 type Room struct {
 	Id         primitive.ObjectID `bson:"_id" json:"id"`
 	clients    map[*client]bool
-	broadcast  chan []byte
+	broadcast  chan *message
 	register   chan *client
 	unregister chan *client
-	Name       string   `json:"name"`
-	Messages   []string `json:"messages"`
+	Name       string     `json:"name"`
+	Messages   []*message `json:"messages"`
 	ctx        context.Context
 	cancel     context.CancelFunc
 }
@@ -38,7 +38,7 @@ func NewRoom(name string) *Room {
 		Id:         primitive.NewObjectID(),
 		Name:       name,
 		clients:    make(map[*client]bool),
-		broadcast:  make(chan []byte),
+		broadcast:  make(chan *message),
 		register:   make(chan *client),
 		unregister: make(chan *client),
 		ctx:        ctx,
@@ -66,7 +66,7 @@ func (r *Room) CheckClientInRoom(tkn string) (*client, bool) {
 func (r *Room) roomFromDatabase() {
 	ctx, cancel := context.WithCancel(context.Background())
 	r.clients = make(map[*client]bool)
-	r.broadcast = make(chan []byte)
+	r.broadcast = make(chan *message)
 	r.register = make(chan *client)
 	r.unregister = make(chan *client)
 	r.ctx = ctx
@@ -91,9 +91,9 @@ func (r *Room) Serve() {
 	}
 }
 
-func (r *Room) saveMessage(msg []byte) error {
+func (r *Room) saveMessage(msg *message) error {
 	_, err := database.Database.UpdateOne(context.Background(), constants.ROOMS_COLL, bson.M{"_id": r.Id},
-		bson.M{"$push": bson.M{"messages": string(msg)}})
+		bson.M{"$push": bson.M{"messages": msg}})
 	return err
 }
 
