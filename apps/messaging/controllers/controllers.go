@@ -3,7 +3,10 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 	accounts "server/apps/accounts/models"
 	"server/apps/messaging/services"
 	"server/constants"
@@ -45,9 +48,40 @@ func ServeWs(c *gin.Context) {
 }
 
 func NewRoom(c *gin.Context) {
+	file, header, err := c.Request.FormFile("file")
+    if err != nil {
+        panic(err)
+    }
+
+	defer file.Close()
+
+    // Reads the file and returns byte slice
+    data, err := ioutil.ReadAll(file)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+	// Uploading the file name
+    uploadStream, err := database.Bucket.OpenUploadStream(
+        header.Filename,
+    )
+    if err != nil {
+        log.Println(err)
+        os.Exit(1)
+    }
+    defer uploadStream.Close()
+    // Writes the file to the database
+    fileSize, err := uploadStream.Write(data)
+    if err != nil {
+        log.Fatal(err)
+        os.Exit(1)
+    }
+
+	log.Printf("Write file to DB was successful. File size: %d M\n", fileSize)
+
 	var roomNameStruct roomName
 	json.NewDecoder(c.Request.Body).Decode(&roomNameStruct)
-	room := services.NewRoom(roomNameStruct.Name)
+	room := services.NewRoom(roomNameStruct.Name, header.Filename)
 	//TODO error
 	user, _ := c.Get("user")
 	go room.Serve()
