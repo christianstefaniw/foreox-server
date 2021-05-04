@@ -3,6 +3,7 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -49,6 +50,7 @@ func ServeWs(c *gin.Context) {
 
 func NewRoom(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
+	fmt.Println(header)
     if err != nil {
         panic(err)
     }
