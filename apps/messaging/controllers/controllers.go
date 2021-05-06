@@ -12,6 +12,7 @@ import (
 	"server/apps/messaging/services"
 	"server/constants"
 	"server/database"
+	"server/errors"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
@@ -50,34 +51,32 @@ func ServeWs(c *gin.Context) {
 
 func NewRoom(c *gin.Context) {
 	file, header, err := c.Request.FormFile("file")
-	fmt.Println(header)
-    if err != nil {
-        panic(err)
-    }
+	if err != nil {
+		fmt.Fprint(os.Stderr, errors.Wrap(err, err.Error()))
+	}
 
 	defer file.Close()
 
-    // Reads the file and returns byte slice
-    data, err := ioutil.ReadAll(file)
-    if err != nil {
-        log.Fatal(err)
-    }
+	// Reads the file and returns byte slice
+	data, err := ioutil.ReadAll(file)
+	if err != nil {
+		fmt.Fprint(os.Stderr, errors.Wrap(err, err.Error()))
+	}
 
 	// Uploading the file name
-    uploadStream, err := database.Bucket.OpenUploadStream(
-        header.Filename,
-    )
-    if err != nil {
-        log.Println(err)
-        os.Exit(1)
-    }
-    defer uploadStream.Close()
-    // Writes the file to the database
-    fileSize, err := uploadStream.Write(data)
-    if err != nil {
-        log.Fatal(err)
-        os.Exit(1)
-    }
+	uploadStream, err := database.Database.Bucket.OpenUploadStream(
+		header.Filename,
+	)
+	if err != nil {
+		fmt.Fprint(os.Stderr, errors.Wrap(err, err.Error()))
+	}
+	defer uploadStream.Close()
+
+	// Writes the file to the database
+	fileSize, err := uploadStream.Write(data)
+	if err != nil {
+		fmt.Fprint(os.Stderr, errors.Wrap(err, err.Error()))
+	}
 
 	log.Printf("Write file to DB was successful. File size: %d M\n", fileSize)
 
