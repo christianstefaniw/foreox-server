@@ -7,10 +7,10 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// load environment
 func LoadDotEnv() {
-	// load .env file
-	err := godotenv.Load("../../.env")
+	path := RootDir() + ".env"
+
+	err := godotenv.Load(path)
 
 	if err != nil {
 		log.Fatal(errors.Wrap(err, err.Error()))

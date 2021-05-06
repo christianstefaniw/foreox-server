@@ -6,16 +6,26 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	accounts "server/apps/accounts/models"
 	rooms "server/apps/messaging/services"
 	"server/constants"
 	"server/database"
+	"server/helpers"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
+
+func ServeRoomImage(c *gin.Context) {
+	fileName := c.Param("name")
+	path := helpers.RootDir() + constants.MEDIA_DIR + fileName
+	//TODO error
+	file, _ := os.Open(path)
+	http.ServeContent(c.Writer, c.Request, "room_image", time.Now(), file)
+}
 
 func JoinRoom(c *gin.Context) {
 	rmId := c.Param("id")
@@ -55,14 +65,14 @@ func AllUsersRooms(c *gin.Context) {
 	}
 	// getting all images in gridfs
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
-    var results bson.M
+	var results bson.M
 	err := database.Database.FindOne(ctx, constants.FILES_COLL, bson.M{}).Decode(&results)
 	if err != nil {
 		fmt.Println(err)
 	}
 	// gridfs downloading the file to cmd/foreox
 	var buf bytes.Buffer
-	for i, _ := range allRooms {
+	for i := range allRooms {
 		dStream, err := database.Database.Bucket.DownloadToStreamByName(allRooms[i].Image, &buf)
 		if err != nil {
 			fmt.Println(err)
