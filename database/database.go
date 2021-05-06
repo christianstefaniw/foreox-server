@@ -60,7 +60,7 @@ func Connect() {
 	log.Println("Connected to MongoDB!")
 
 	bucket, err := gridfs.NewBucket(
-		client.Database("myfiles"),
+		client.Database(dbName),
 	)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, err.Error()))

@@ -83,6 +83,7 @@ func NewRoom(c *gin.Context) {
 	var roomNameStruct roomName
 	json.NewDecoder(c.Request.Body).Decode(&roomNameStruct)
 	room := services.NewRoom(roomNameStruct.Name, header.Filename)
+	fmt.Println(room)
 	//TODO error
 	user, _ := c.Get("user")
 	go room.Serve()
