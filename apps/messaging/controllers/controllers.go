@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -18,10 +17,6 @@ import (
 	"github.com/gorilla/websocket"
 	"go.mongodb.org/mongo-driver/bson"
 )
-
-type roomName struct {
-	Name string `json:"roomName"`
-}
 
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
@@ -50,6 +45,7 @@ func ServeWs(c *gin.Context) {
 }
 
 func NewRoom(c *gin.Context) {
+	c.Request.ParseForm()
 	file, header, err := c.Request.FormFile("file")
 	if err != nil {
 		fmt.Fprint(os.Stderr, errors.Wrap(err, err.Error()))
@@ -80,10 +76,8 @@ func NewRoom(c *gin.Context) {
 
 	log.Printf("Write file to DB was successful. File size: %d M\n", fileSize)
 
-	var roomNameStruct roomName
-	json.NewDecoder(c.Request.Body).Decode(&roomNameStruct)
-	room := services.NewRoom(roomNameStruct.Name, header.Filename)
-	fmt.Println(room)
+	room := services.NewRoom(c.Request.FormValue("roomName"), header.Filename)
+	fmt.Println(c.Request.FormValue("roomName"))
 	//TODO error
 	user, _ := c.Get("user")
 	go room.Serve()
