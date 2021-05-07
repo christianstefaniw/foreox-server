@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -23,7 +22,6 @@ func main() {
 
 	router := router.Router()
 
-	fmt.Println("Starting server on the port 8080...")
 	router.Run(":" + os.Getenv("PORT"))
 }
 

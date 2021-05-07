@@ -8,11 +8,13 @@ import (
 	errors "server/errors"
 
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type database struct {
 	Database *mongo.Database
+	Bucket   *gridfs.Bucket
 }
 
 func (d *database) Find(ctx context.Context, coll string, filter interface{}) (*mongo.Cursor, error) {
@@ -25,6 +27,10 @@ func (d *database) InsertOne(ctx context.Context, coll string, docs ...interface
 
 func (d *database) FindOne(ctx context.Context, coll string, filter interface{}) *mongo.SingleResult {
 	return d.Database.Collection(coll).FindOne(ctx, filter)
+}
+
+func (d *database) UpdateOne(ctx context.Context, coll string, filter, update interface{}) (*mongo.UpdateResult, error) {
+	return d.Database.Collection(coll).UpdateOne(ctx, filter, update)
 }
 
 func (d *database) FindOneAndUpdate(ctx context.Context, coll string, filter, update interface{}) *mongo.SingleResult {
@@ -51,9 +57,17 @@ func Connect() {
 		log.Fatal(errors.Wrap(err, err.Error()))
 	}
 
-	fmt.Println("Connected to MongoDB!")
+	log.Println("Connected to MongoDB!")
 
-	Database = database{client.Database(dbName)}
+	bucket, err := gridfs.NewBucket(
+		client.Database(dbName),
+	)
+	if err != nil {
+		log.Fatal(errors.Wrap(err, err.Error()))
+	}
 
+	log.Println("GridFS bucket created!")
+
+	Database = database{Database: client.Database(dbName), Bucket: bucket}
 	fmt.Println("Collection instance created!")
 }
