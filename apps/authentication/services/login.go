@@ -35,7 +35,7 @@ func Login(username, password string) (accounts.User, error) {
 		"username": user.Username,
 	})
 
-	tokenString, err := token.SignedString([]byte("Foreox4224"))
+	tokenString, err := token.SignedString([]byte("DevCord4224"))
 
 	if err != nil {
 		return user, errors.Wrap(err, err.Error())

@@ -20,7 +20,7 @@ type claims struct {
 	jwt.StandardClaims
 }
 
-var jwtKey = []byte("Foreox4224")
+var jwtKey = []byte("DevCord4224")
 
 func Auth() gin.HandlerFunc {
 	return func(c *gin.Context) {
