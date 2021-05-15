@@ -13,4 +13,6 @@ func GenRoutes(r *gin.Engine, subdir string) {
 	r.GET(settings.API_PATH+subdir+"info/:id", middleware.Auth(), controllers.RoomInfo)
 	r.GET(settings.API_PATH+subdir+"allrooms", middleware.Auth(), controllers.AllUsersRooms)
 	r.GET(settings.API_PATH+subdir+"img/:name", controllers.ServeRoomImage)
+	r.GET(settings.API_PATH+subdir+"room/:id", middleware.Auth(), controllers.ServeRoom)
+	r.POST(settings.API_PATH+subdir+"newroom", middleware.Auth(), controllers.NewRoom)
 }
