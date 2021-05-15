@@ -8,7 +8,7 @@ import (
 )
 
 func LoadDotEnv() {
-	path := RootDir() + ".env"
+	path := RootDir() + "/.env"
 
 	err := godotenv.Load(path)
 
