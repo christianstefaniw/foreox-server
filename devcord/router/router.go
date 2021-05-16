@@ -4,7 +4,6 @@ import (
 	accounts "server/apps/accounts/routes"
 	auth "server/apps/authentication/routes"
 	home "server/apps/home/routes"
-	messaging "server/apps/messaging/routes"
 	rooms "server/apps/rooms/routes"
 	"server/middleware"
 
@@ -19,7 +18,6 @@ func Router() *gin.Engine {
 
 	home.GenRoutes(router, "")
 	auth.GenRoutes(router, "auth/")
-	messaging.GenRoutes(router, "messaging/")
 	accounts.GenRoutes(router, "account/")
 	rooms.GenRoutes(router, "rooms/")
 

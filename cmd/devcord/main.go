@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"server/database"
-	"server/foreox/router"
-	"server/foreox/settings"
+	"server/devcord/router"
+	"server/devcord/settings"
 	"server/helpers"
 )
 

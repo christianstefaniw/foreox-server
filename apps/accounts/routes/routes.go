@@ -2,7 +2,7 @@ package routes
 
 import (
 	"server/apps/accounts/controllers"
-	"server/foreox/settings"
+	"server/devcord/settings"
 	"server/middleware"
 
 	"github.com/gin-gonic/gin"
