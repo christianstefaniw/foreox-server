@@ -9,3 +9,4 @@ A server for an app where clients can create and join messaging rooms, kind of l
 - Room based messaging using web sockets
 - Authentication
 - Create new rooms
+- Join rooms through room ID
